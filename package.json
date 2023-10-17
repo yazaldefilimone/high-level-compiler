@@ -1,0 +1,28 @@
+{
+  "name": "javascript-starter",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "JavaScript starter with vitest, prettier, eslint. All the tools you need to build your project.",
+  "main": "index.ts",
+  "repository": "git@github.com:yazaldefilimonepinto/javascript-starter.git",
+  "author": "Yazalde Filimone <yazaldefilimon@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prettier": "npx prettier src test --check",
+    "prettier:fix": "npm run prettier -- --write",
+    "format": "npm run prettier:fix && npm run lint:fix",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui"
+  },
+  "devDependencies": {
+    "eslint": "^8.51.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "prettier": "^3.0.3",
+    "vitest": "^0.34.6"
+  }
+}
