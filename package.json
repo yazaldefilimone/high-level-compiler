@@ -1,10 +1,10 @@
 {
-  "name": "javascript-starter",
+  "name": "high-level-compiler",
   "version": "1.0.0",
   "type": "commonjs",
-  "description": "JavaScript starter with vitest, prettier, eslint. All the tools you need to build your project.",
+  "description": "Building a Transpiler from scratch: Techniques of high-level compilations",
   "main": "index.ts",
-  "repository": "git@github.com:yazaldefilimonepinto/javascript-starter.git",
+  "repository": "git@github.com:yazaldefilimonepinto/high-level-compiler.git",
   "author": "Yazalde Filimone <yazaldefilimon@gmail.com>",
   "license": "MIT",
   "scripts": {
