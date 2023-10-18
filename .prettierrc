@@ -3,5 +3,13 @@
   "tabWidth": 2,
   "semi": true,
   "trailingComma": "all",
-  "singleQuote": true
+  "singleQuote": true,
+  "overrides": [
+    {
+      "files": ["*.test.js", "*.test.ts"],
+      "options": {
+        "singleQuote": false
+      }
+    }
+  ]
 }
