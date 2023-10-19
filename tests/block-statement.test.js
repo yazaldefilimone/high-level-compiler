@@ -6,7 +6,7 @@ const evaMessagePassingProcess = new EvaMessagePassingProcess();
 
 describe("Block statement", () => {
   it("block", () => {
-    const { ast, target } = evaMessagePassingProcess.compile(["begin", 30, `"Hello"`]);
+    const { ast, target } = evaMessagePassingProcess.compile('(begin 30 "Hello")');
     console.log(target);
     expect(ast.type).toEqual(types.Program);
     const blockStatement = ast.body;
@@ -20,3 +20,4 @@ describe("Block statement", () => {
     expect(blockStatement.body[1].expression.value).toEqual(`"Hello"`);
   });
 });
+``;

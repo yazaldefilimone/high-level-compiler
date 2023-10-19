@@ -1,11 +1,13 @@
 import { JavaScriptCodeGenerate } from '../codegen';
+import parser from '../parser/parser';
 import { types } from '../utils';
+import { writeFileSync } from 'fs';
 
 const javaScriptCodeGenerate = new JavaScriptCodeGenerate();
 
 export class EvaMessagePassingProcess {
   compile(program) {
-    const evaAst = ['begin', program];
+    const evaAst = parser.parse(`(begin ${program})`);
     const javaScriptAst = this._generateProgram(evaAst);
 
     const target = javaScriptCodeGenerate.generate(javaScriptAst);
@@ -71,5 +73,7 @@ export class EvaMessagePassingProcess {
     }
   }
 
-  saveToFile(filename, target) {}
+  saveToFile(filename, code) {
+    writeFileSync(filename, code);
+  }
 }
