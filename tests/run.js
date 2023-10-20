@@ -3,11 +3,25 @@ const evaMPP = new EvaMPP();
 const { ast, target } = evaMPP.compile(`
 (var x 10)
 
-(var y (* 10 (+ x 10)))
- (and 10 (+ x 10))
- (not 10)
 
-(print (not y))
+(if (== x 10)
+  (begin 
+    (print "x is iqual the 10")
+  )
+   (begin 
+    (print "x is diferente the 10")
+   )
+)
+
+
+(var index 10)
+
+(while (> index 0) 
+  (begin
+    (print "index:" index)
+    (set index (- index 1))
+  )
+)
 `);
 
 console.log('---- ast ----');
