@@ -55,6 +55,7 @@ class JSCodeGen {
   UnaryExpression(expression) {
     return `${expression.operator}${this._generate(expression.argument)}`;
   }
+
   Identifier(expression) {
     return expression.name;
   }
@@ -70,6 +71,17 @@ class JSCodeGen {
     return `${this._generate(expression)};`;
   }
 
+  IfStatement(exp) {
+    const test = `${this._generate(exp.test)}`;
+    const consequence = `${this._generate(exp.consequence)}`;
+    const alternative = exp.alternative ? `else ${this._generate(exp.alternative)}` : '';
+    return `if(${test}) ${consequence} ${alternative}`;
+  }
+  WhileStatement(exp) {
+    const test = `${this._generate(exp.test)}`;
+    const body = `${this._generate(exp.body)}`;
+    return `while(${test}) ${body} `;
+  }
   Program({ body }) {
     return body.map((current) => this._generate(current)).join('\n');
   }
