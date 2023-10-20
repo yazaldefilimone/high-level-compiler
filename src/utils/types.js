@@ -12,6 +12,8 @@ const types = {
   BinaryExpression: `BinaryExpression`,
   LogicalExpression: `LogicalExpression`,
   UnaryExpression: `UnaryExpression`,
+  IfStatement: `IfStatement`,
+  WhileStatement: `WhileStatement`,
 };
 
 module.exports = { types };
