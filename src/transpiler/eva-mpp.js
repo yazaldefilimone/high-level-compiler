@@ -115,6 +115,24 @@ class EvaMPP {
         argument: this._generate(expression[1]),
       };
     }
+
+    if (expression[0] === 'if') {
+      const [_, test, consequence, alternative] = expression;
+      return {
+        type: types.IfStatement,
+        test: this._generate(test),
+        consequence: this._toStatement(this._generate(consequence)),
+        alternative: this._toStatement(this._generate(alternative)),
+      };
+    }
+    if (expression[0] === 'while') {
+      const [_, test, body] = expression;
+      return {
+        type: types.WhileStatement,
+        test: this._generate(test),
+        body: this._toStatement(this._generate(body)),
+      };
+    }
     // functions call : [print x]
     if (Array.isArray(expression)) {
       const [name, ...args] = expression;
