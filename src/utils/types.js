@@ -9,6 +9,9 @@ const types = {
   Identifier: `Identifier`,
   AssignmentExpression: `AssignmentExpression`,
   CallExpression: `CallExpression`,
+  BinaryExpression: `BinaryExpression`,
+  LogicalExpression: `LogicalExpression`,
+  UnaryExpression: `UnaryExpression`,
 };
 
 module.exports = { types };
