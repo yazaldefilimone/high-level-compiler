@@ -655,4 +655,4 @@ function parseError(message) {
   throw new SyntaxError(message);
 }
 
-export default yyparse;
+module.exports = yyparse;

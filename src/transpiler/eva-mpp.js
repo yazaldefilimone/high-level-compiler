@@ -1,11 +1,11 @@
-import { JSCodeGen } from '../codegen/codegen.js';
-import parser from '../parser/parser.js';
-import { types } from '../utils/types.js';
-import { writeFileSync } from 'fs';
+const { JSCodeGen } = require('../codegen/codegen.js');
+const parser = require('../parser/parser.js');
+const { types } = require('../utils/types.js');
+const { writeFileSync } = require('fs');
 
 const codeGen = new JSCodeGen();
 // Eva Message Passing Process
-export class EvaMPP {
+class EvaMPP {
   compile(program) {
     const evaAst = parser.parse(`(begin ${program})`);
     const javaScriptAst = this._generateProgram(evaAst);
@@ -35,7 +35,7 @@ export class EvaMPP {
     if (this._isVariableName(expression)) {
       return {
         type: types.Identifier,
-        name: expression,
+        name: this._toVariableName(expression),
       };
     }
     // variable declaration = [var x 10]
@@ -71,6 +71,20 @@ export class EvaMPP {
       };
     }
 
+    // functions call : [print x]
+    if (Array.isArray(expression)) {
+      const [name, ...args] = expression;
+      const jsName = this._toVariableName(name);
+      const callee = this._generate(jsName);
+      const _arguments = args.map((current) => this._generate(current));
+
+      return {
+        type: types.CallExpression,
+        callee,
+        arguments: _arguments,
+      };
+    }
+
     throw `Unexpected implemented: ${JSON.stringify(expression)}`;
   }
   _generateProgram(expression) {
@@ -85,7 +99,6 @@ export class EvaMPP {
     return this._toJsName(exp);
   }
   _toJsName(name) {
-    console.log({ name });
     return name.replace(/-([a-z])/g, (math, latter) => latter.toUpperCase());
   }
 
@@ -103,6 +116,8 @@ export class EvaMPP {
       case types.NumericLiteral:
       case types.StringLiteral:
       case types.AssignmentExpression:
+      case types.CallExpression:
+      case types.Identifier:
         return { type: types.ExpressionStatement, expression };
       default:
         return expression;
@@ -110,6 +125,13 @@ export class EvaMPP {
   }
 
   saveToFile(filename, code) {
-    writeFileSync(filename, code);
+    const runtimeCode = `
+// prologue
+const {print} =  require('../src/runtime');
+${code}
+    `;
+    writeFileSync(filename, runtimeCode);
   }
 }
+
+module.exports = { EvaMPP };

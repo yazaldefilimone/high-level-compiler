@@ -1,4 +1,4 @@
-export class JSCodeGen {
+class JSCodeGen {
   constructor({ indent } = { indent: 2 }) {
     this._indent = indent;
     this._currentIndent = 0;
@@ -24,6 +24,12 @@ export class JSCodeGen {
   VariableDeclaration(expression) {
     const { id, init } = expression.declarations[0];
     return `let ${this._generate(id)} = ${this._generate(init)};`;
+  }
+  CallExpression(expression) {
+    const call = this._generate(expression.callee);
+    const _arguments = expression.arguments.map((current) => this._generate(current)).join(', ');
+
+    return `${call}(${_arguments})`;
   }
   AssignmentExpression(expression) {
     const { left, operator, right } = expression;
@@ -52,3 +58,5 @@ export class JSCodeGen {
     return ' '.repeat(this._currentIndent);
   }
 }
+
+module.exports = { JSCodeGen };

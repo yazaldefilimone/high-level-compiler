@@ -1,7 +1,6 @@
 {
   "name": "high-level-compiler",
   "version": "1.0.0",
-  "type": "module",
   "description": "Building a Transpiler from scratch: Techniques of high-level compilations",
   "main": "index.ts",
   "repository": "git@github.com:yazaldefilimonepinto/high-level-compiler.git",

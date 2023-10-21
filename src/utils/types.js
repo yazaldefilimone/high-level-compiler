@@ -1,4 +1,4 @@
-export const types = {
+const types = {
   NumericLiteral: 'NumericLiteral',
   StringLiteral: 'StringLiteral',
   BlockStatement: 'BlockStatement',
@@ -8,4 +8,7 @@ export const types = {
   VariableDeclarator: `VariableDeclarator`,
   Identifier: `Identifier`,
   AssignmentExpression: `AssignmentExpression`,
+  CallExpression: `CallExpression`,
 };
+
+module.exports = { types };
