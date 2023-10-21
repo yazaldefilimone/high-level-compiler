@@ -1,3 +1,3 @@
-clear && node  ./tests/run.js &&
+clear && node --watch ./tests/run.js &&
 
 node  ./tests/out.js
