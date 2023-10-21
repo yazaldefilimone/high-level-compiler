@@ -1,7 +1,7 @@
 {
   "name": "high-level-compiler",
   "version": "1.0.0",
-  "type": "commonjs",
+  "type": "module",
   "description": "Building a Transpiler from scratch: Techniques of high-level compilations",
   "main": "index.ts",
   "repository": "git@github.com:yazaldefilimonepinto/high-level-compiler.git",
@@ -16,7 +16,8 @@
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:coverage": "vitest --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "dev": "./compile-run.sh"
   },
   "devDependencies": {
     "eslint": "^8.51.0",

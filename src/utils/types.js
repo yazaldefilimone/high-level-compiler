@@ -4,4 +4,6 @@ export const types = {
   BlockStatement: 'BlockStatement',
   ExpressionStatement: `ExpressionStatement`,
   Program: `Program`,
+  VariableDeclaration: `VariableDeclaration`,
+  VariableDeclarator: `VariableDeclarator`,
 };

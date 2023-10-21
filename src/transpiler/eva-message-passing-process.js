@@ -1,6 +1,6 @@
-import { JavaScriptCodeGenerate } from '../codegen';
-import parser from '../parser/parser';
-import { types } from '../utils';
+import { JavaScriptCodeGenerate } from '../codegen/javascript-codegen.js';
+import parser from '../parser/parser.js';
+import { types } from '../utils/types.js';
 import { writeFileSync } from 'fs';
 
 const javaScriptCodeGenerate = new JavaScriptCodeGenerate();
@@ -11,7 +11,7 @@ export class EvaMessagePassingProcess {
     const javaScriptAst = this._generateProgram(evaAst);
 
     const target = javaScriptCodeGenerate.generate(javaScriptAst);
-    this.saveToFile('./out.js', target);
+    this.saveToFile('./tests/out.js', target);
 
     return { ast: javaScriptAst, target };
   }
@@ -33,7 +33,19 @@ export class EvaMessagePassingProcess {
         value: expression,
       };
     }
-
+    // [var x 10]
+    if (expression[0] === 'var') {
+      return {
+        type: types.VariableDeclaration,
+        declarations: [
+          {
+            type: types.VariableDeclarator,
+            id: this.generate(expression[1]),
+            init: this.generate(expression[2]),
+          },
+        ],
+      };
+    }
     if (expression[0] === 'begin') {
       const [_tag, ...expressions] = expression;
       const body = [];

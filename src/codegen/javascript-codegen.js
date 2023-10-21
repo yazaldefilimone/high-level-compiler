@@ -1,5 +1,5 @@
 export class JavaScriptCodeGenerate {
-  constructor(indent = 2) {
+  constructor({ indent } = { indent: 2 }) {
     this._indent = indent;
     this._currentIndent = indent;
   }
@@ -23,11 +23,13 @@ export class JavaScriptCodeGenerate {
   }
 
   BlockStatement(expression) {
-    const code = expression.body.map((exp) => {
-      return `\n${this._indenting() + this.gen(exp)}`;
-    });
-    return `{` + code.join('') + '\n' + `}`;
+    this._currentIndent += this.indent;
+    let code = '{\n' + expression.body.map((exp) => this._indenting() + this.gen(exp)).join('\n') + '\n';
+    this._currentIndent -= this.indent;
+    code += this._indenting() + '}';
+    return code;
   }
+
   ExpressionStatement({ expression }) {
     return `${this.gen(expression)};`;
   }
@@ -36,10 +38,6 @@ export class JavaScriptCodeGenerate {
   }
 
   _indenting() {
-    let spaces = '';
-    for (let index = 0; index < this._currentIndent; index++) {
-      spaces += ' ';
-    }
-    return spaces;
+    return ' '.repeat(this._currentIndent);
   }
 }
