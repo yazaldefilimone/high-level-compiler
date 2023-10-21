@@ -1,4 +1,4 @@
-export class JavaScriptCodeGenerate {
+export class JSCodeGen {
   constructor({ indent } = { indent: 2 }) {
     this._indent = indent;
     this._currentIndent = 0;
@@ -9,7 +9,7 @@ export class JavaScriptCodeGenerate {
 
   _generate(expression) {
     if (!this[expression.type]) {
-      throw `JavaScriptCodeGenerate - Unexpected expression: ${expression.type}`;
+      throw `CodeGenerate - Unexpected expression: ${expression.type}`;
     }
     return this[expression.type](expression);
   }
@@ -21,7 +21,17 @@ export class JavaScriptCodeGenerate {
   StringLiteral(expression) {
     return String(expression.value);
   }
-
+  VariableDeclaration(expression) {
+    const { id, init } = expression.declarations[0];
+    return `let ${this._generate(id)} = ${this._generate(init)};`;
+  }
+  AssignmentExpression(expression) {
+    const { left, operator, right } = expression;
+    return `${this._generate(left)} ${operator} ${this._generate(right)}`;
+  }
+  Identifier(expression) {
+    return expression.name;
+  }
   BlockStatement(expression) {
     this._currentIndent += this._indent;
     let code = '{\n' + expression.body.map((exp) => this._ind() + this._generate(exp)).join('\n') + '\n';
@@ -33,8 +43,9 @@ export class JavaScriptCodeGenerate {
   ExpressionStatement({ expression }) {
     return `${this._generate(expression)};`;
   }
+
   Program({ body }) {
-    return `${this._generate(body)}`;
+    return body.map((current) => this._generate(current)).join('\n');
   }
 
   _ind() {
