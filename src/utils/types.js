@@ -6,4 +6,6 @@ export const types = {
   Program: `Program`,
   VariableDeclaration: `VariableDeclaration`,
   VariableDeclarator: `VariableDeclarator`,
+  Identifier: `Identifier`,
+  AssignmentExpression: `AssignmentExpression`,
 };
