@@ -1,11 +1,13 @@
 const { EvaMPP } = require('../src/transpiler/eva-mpp.js');
 const evaMPP = new EvaMPP();
 const { ast, target } = evaMPP.compile(`
-(var user-name 10)
-(print "user-name:" user-name)
-(set user-name 100)
-(print "user-name updated:" user-name)
-(print (Number "10"))
+(var x 10)
+
+(var y (* 10 (+ x 10)))
+ (and 10 (+ x 10))
+ (not 10)
+
+(print (not y))
 `);
 
 console.log('---- ast ----');
