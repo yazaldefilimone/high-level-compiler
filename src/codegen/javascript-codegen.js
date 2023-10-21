@@ -1,13 +1,13 @@
 export class JavaScriptCodeGenerate {
   constructor({ indent } = { indent: 2 }) {
     this._indent = indent;
-    this._currentIndent = indent;
+    this._currentIndent = 0;
   }
   generate(expression) {
-    return this.gen(expression);
+    return this._generate(expression);
   }
 
-  gen(expression) {
+  _generate(expression) {
     if (!this[expression.type]) {
       throw `JavaScriptCodeGenerate - Unexpected expression: ${expression.type}`;
     }
@@ -23,21 +23,21 @@ export class JavaScriptCodeGenerate {
   }
 
   BlockStatement(expression) {
-    this._currentIndent += this.indent;
-    let code = '{\n' + expression.body.map((exp) => this._indenting() + this.gen(exp)).join('\n') + '\n';
-    this._currentIndent -= this.indent;
-    code += this._indenting() + '}';
+    this._currentIndent += this._indent;
+    let code = '{\n' + expression.body.map((exp) => this._ind() + this._generate(exp)).join('\n') + '\n';
+    this._currentIndent -= this._indent;
+    code += this._ind() + '}';
     return code;
   }
 
   ExpressionStatement({ expression }) {
-    return `${this.gen(expression)};`;
+    return `${this._generate(expression)};`;
   }
   Program({ body }) {
-    return `${this.gen(body)}`;
+    return `${this._generate(body)}`;
   }
 
-  _indenting() {
+  _ind() {
     return ' '.repeat(this._currentIndent);
   }
 }
