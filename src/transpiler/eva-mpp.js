@@ -70,7 +70,51 @@ class EvaMPP {
         body,
       };
     }
+    if (this._isBinary(expression)) {
+      return {
+        type: types.BinaryExpression,
+        left: this._generate(expression[1]),
+        operator: expression[0],
+        right: this._generate(expression[2]),
+      };
+    }
 
+    if (this._isLogicalBinary(expression)) {
+      let operator;
+      switch (expression[0]) {
+        case 'or':
+          operator = '||';
+          break;
+        case 'and':
+          operator = '&&';
+          break;
+
+        default:
+          throw `Unknown  logical binary operator: ${expression[0]}`;
+      }
+      return {
+        type: types.LogicalExpression,
+        left: this._generate(expression[1]),
+        operator,
+        right: this._generate(expression[2]),
+      };
+    }
+
+    if (this._isUnary(expression)) {
+      let operator;
+      switch (expression[0]) {
+        case 'not':
+          operator = '!';
+          break;
+        default:
+          throw `Unknown unary operator: ${expression[0]}`;
+      }
+      return {
+        type: types.UnaryExpression,
+        operator,
+        argument: this._generate(expression[1]),
+      };
+    }
     // functions call : [print x]
     if (Array.isArray(expression)) {
       const [name, ...args] = expression;
@@ -118,10 +162,40 @@ class EvaMPP {
       case types.AssignmentExpression:
       case types.CallExpression:
       case types.Identifier:
+      case types.BinaryExpression:
+      case types.LogicalExpression:
         return { type: types.ExpressionStatement, expression };
       default:
         return expression;
     }
+  }
+  _isBinary(expression) {
+    if (expression.length != 3) {
+      return false;
+    }
+    const operator = expression[0];
+    return Boolean(
+      operator === '+' ||
+        operator === '-' ||
+        operator === '/' ||
+        operator === '*' ||
+        operator === '>' ||
+        operator === '<' ||
+        operator === '>=' ||
+        operator === '<=' ||
+        operator === '!=' ||
+        operator === '==',
+    );
+  }
+  _isUnary(expression) {
+    if (expression.length !== 2) {
+      return false;
+    }
+    return Boolean(expression[0] === 'not' || expression[0] === '-');
+  }
+  _isLogicalBinary(expression) {
+    const operator = expression[0];
+    return Boolean(operator === 'or' || operator === 'and');
   }
 
   saveToFile(filename, code) {
