@@ -35,6 +35,26 @@ class JSCodeGen {
     const { left, operator, right } = expression;
     return `${this._generate(left)} ${operator} ${this._generate(right)}`;
   }
+  BinaryExpression(expression) {
+    const { left, right } = expression;
+    let operator = expression.operator;
+    if (operator === '==') {
+      operator = '===';
+    }
+
+    if (operator === '!=') {
+      operator = '!==';
+    }
+    return `(${this._generate(left)} ${operator} ${this._generate(right)})`;
+  }
+  LogicalExpression(expression) {
+    const { left, right, operator } = expression;
+    return `(${this._generate(left)} ${operator} ${this._generate(right)})`;
+  }
+
+  UnaryExpression(expression) {
+    return `${expression.operator}${this._generate(expression.argument)}`;
+  }
   Identifier(expression) {
     return expression.name;
   }
