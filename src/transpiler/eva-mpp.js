@@ -62,6 +62,34 @@ class EvaMPP {
         right: this._generate(right),
       };
     }
+    // return  = (return 1)
+    if (expression[0] === 'return') {
+      const [_tag, args] = expression;
+      return {
+        type: types.ReturnStatement,
+        argument: this._generate(args),
+      };
+    }
+    // function  =  (def square (x) (* x x))
+    if (expression[0] === 'def') {
+      let [_tag, name, evaParams, evaBody] = expression;
+      const params = evaParams.map((param) => this._generate(param));
+      if (!this._hasBlock(evaBody)) {
+        evaBody = ['begin', evaBody];
+      }
+      const last = evaBody.at(-1);
+      if (!this._hasStatement(last) && last[0] !== 'return') {
+        evaBody[evaBody.length - 1] = ['return', last];
+      }
+      const body = this._generate(evaBody);
+      return {
+        type: types.FunctionDeclaration,
+        id: this._generate(this._toVariableName(name)),
+        params,
+        body,
+      };
+    }
+
     if (expression[0] === 'begin') {
       const [_tag, ...expressions] = expression;
       const body = expressions.map((element) => this._toStatement(this._generate(element)));
@@ -215,11 +243,17 @@ class EvaMPP {
     const operator = expression[0];
     return Boolean(operator === 'or' || operator === 'and');
   }
-
+  _hasBlock(expression) {
+    return Boolean(expression[0] === 'begin');
+  }
+  _hasStatement(expression) {
+    const exp = expression[0];
+    return Boolean(exp === 'if' || exp === 'while' || exp === 'for' || exp === 'var');
+  }
   saveToFile(filename, code) {
     const runtimeCode = `
 // prologue
-const {print} =  require('../src/runtime');
+const  {print, spawn} =  require('../src/runtime');
 ${code}
     `;
     writeFileSync(filename, runtimeCode);
