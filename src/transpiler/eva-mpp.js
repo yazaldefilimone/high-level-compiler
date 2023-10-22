@@ -1,12 +1,15 @@
-const { JSCodeGen } = require('../codegen/codegen.js');
+const { JSCodeGen } = require('../codegen/codegen');
 const parser = require('../parser/parser.js');
-const { types } = require('../utils/types.js');
+const { types, internalType } = require('../utils');
+const { Transform } = require('../transform/transform');
 const { writeFileSync } = require('fs');
 
 const codeGen = new JSCodeGen();
+const transform = new Transform();
 // Eva Message Passing Process
 class EvaMPP {
   compile(program) {
+    this._mapFns$ = new Map();
     const evaAst = parser.parse(`(begin ${program})`);
     const javaScriptAst = this._generateProgram(evaAst);
     const target = codeGen.generate(javaScriptAst);
@@ -82,17 +85,29 @@ class EvaMPP {
         evaBody[evaBody.length - 1] = ['return', last];
       }
       const body = this._generate(evaBody);
-      return {
+      const fn = {
         type: types.FunctionDeclaration,
         id: this._generate(this._toVariableName(name)),
         params,
         body,
       };
+      const mapfn = {
+        fn,
+        block: this._currentBlock,
+        index: this._currentBlock.length,
+      };
+      this._mapFns$.set(fn.id.name, mapfn);
+      return fn;
     }
 
     if (expression[0] === 'begin') {
       const [_tag, ...expressions] = expression;
-      const body = expressions.map((element) => this._toStatement(this._generate(element)));
+      const previousBlock = this._currentBlock;
+      const body = (this._currentBlock = new Array());
+      for (const currentExpression of expressions) {
+        body.push(this._toStatement(this._generate(currentExpression)));
+      }
+      this._currentBlock = previousBlock;
       return {
         type: types.BlockStatement,
         body,
@@ -161,12 +176,46 @@ class EvaMPP {
         body: this._toStatement(this._generate(body)),
       };
     }
+    // list(array): [list 1 2 "name"]
+    if (expression[0] === 'list') {
+      const elements = expression.slice(1).map((current) => this._generate(current));
+      return {
+        type: types.ArrayExpression,
+        elements,
+      };
+    }
     // functions call : [print x]
     if (Array.isArray(expression)) {
       const [name, ...args] = expression;
       const jsName = this._toVariableName(name);
       const callee = this._generate(jsName);
       const _arguments = args.map((current) => this._generate(current));
+
+      // dynamic allocate a process function if the original function is used spawn
+      if (callee.name === internalType.spawn) {
+        const originalFnName = _arguments[0].name;
+        const processFnName = `_${originalFnName}`;
+
+        if (!this._mapFns$.has(processFnName)) {
+          const originalStoreFn = this._mapFns$.get(originalFnName);
+          const processFn = transform.functionToAsyncGenerator(originalStoreFn.fn);
+          const mapProcessFn = {
+            ...originalStoreFn,
+            fn: processFn,
+            index: originalStoreFn.index + 1, // add a new process function underneath the original function
+          };
+
+          this._mapFns$.set(processFnName, mapProcessFn); // store a new process function
+
+          // put under to original function a new process function
+          const originalFnBlockWithProcessFn = originalStoreFn.block.splice(mapProcessFn.index, 0, processFn);
+
+          // update the original block with new process function
+          this._mapFns$.set(originalFnName, originalFnBlockWithProcessFn);
+        }
+        //  pointing the function call name to the  process function name
+        _arguments[0].name = processFnName;
+      }
 
       return {
         type: types.CallExpression,
@@ -179,7 +228,12 @@ class EvaMPP {
   }
   _generateProgram(expression) {
     const [_tag, ...expressions] = expression;
-    const body = expressions.map((element) => this._toStatement(this._generate(element)));
+    const previousBlock = this._currentBlock;
+    const body = (this._currentBlock = new Array());
+    for (const currentExpression of expressions) {
+      body.push(this._toStatement(this._generate(currentExpression)));
+    }
+    this._currentBlock = previousBlock;
     return {
       type: 'Program',
       body: body,
@@ -210,6 +264,8 @@ class EvaMPP {
       case types.Identifier:
       case types.BinaryExpression:
       case types.LogicalExpression:
+      case types.ArrayExpression:
+      case types.YieldExpression:
         return { type: types.ExpressionStatement, expression };
       default:
         return expression;
