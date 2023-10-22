@@ -25,6 +25,7 @@ class JSCodeGen {
     const { id, init } = expression.declarations[0];
     return `let ${this._generate(id)} = ${this._generate(init)};`;
   }
+
   FunctionDeclaration(expression) {
     const id = this._generate(expression.id);
     const params = expression.params.map((current) => this._generate(current)).join(', ');
@@ -32,6 +33,26 @@ class JSCodeGen {
     const generator = expression.generator ? '*' : '';
     const async = expression.async ? 'async ' : '';
     return `\n${async}function${generator} ${id}(${params}) ${body}\n`;
+  }
+  ArrayExpression(expression) {
+    const elements = expression.elements.map((current) => this._generate(current));
+    return `[${elements.join(', ')}]`;
+  }
+  MemberExpression(expression) {
+    const { object, property, computed } = expression;
+    if (computed) {
+      return `${this._generate(object)}[${this._generate(property)}]`;
+    }
+    return `${this._generate(object)}.${this._generate(property)}`;
+  }
+
+  ObjectExpression(expression) {
+    const properties = expression.properties.map((current) => this._generate(current));
+    return `{ ${properties.join(', ')} }`;
+  }
+
+  ObjectProperty(expression) {
+    return `${this._generate(expression.key)}: ${this._generate(expression.value)}`;
   }
   YieldExpression(expression) {
     return 'yield';
