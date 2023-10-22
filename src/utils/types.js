@@ -14,6 +14,8 @@ const types = {
   UnaryExpression: `UnaryExpression`,
   IfStatement: `IfStatement`,
   WhileStatement: `WhileStatement`,
+  FunctionDeclaration: `FunctionDeclaration`,
+  ReturnStatement: `ReturnStatement`,
 };
 
 module.exports = { types };
