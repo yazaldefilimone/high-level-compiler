@@ -2,4 +2,7 @@ function print(...args) {
   console.log(...args);
 }
 
-module.exports = { print };
+function spawn(fn, ...args) {
+  // to-do: process
+}
+module.exports = { print, spawn };
