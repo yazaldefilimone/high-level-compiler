@@ -25,6 +25,12 @@ class JSCodeGen {
     const { id, init } = expression.declarations[0];
     return `let ${this._generate(id)} = ${this._generate(init)};`;
   }
+  FunctionDeclaration(expression) {
+    const id = this._generate(expression.id);
+    const params = expression.params.map((current) => this._generate(current)).join(', ');
+    const body = this._generate(expression.body);
+    return `\nfunction ${id}(${params}) ${body}\n`;
+  }
   CallExpression(expression) {
     const call = this._generate(expression.callee);
     const _arguments = expression.arguments.map((current) => this._generate(current)).join(', ');
@@ -65,6 +71,10 @@ class JSCodeGen {
     this._currentIndent -= this._indent;
     code += this._ind() + '}';
     return code;
+  }
+
+  ReturnStatement({ argument }) {
+    return `return ${this._generate(argument)};`;
   }
 
   ExpressionStatement({ expression }) {
