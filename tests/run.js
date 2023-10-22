@@ -48,8 +48,8 @@ const spanedProcess = `
   )
 )
 
-(spawn (handle "x"))
-(spawn (handle "y"))
+(spawn handle "x")
+(spawn handle "y")
 `;
 const { ast, target } = evaMPP.compile(spanedProcess);
 
