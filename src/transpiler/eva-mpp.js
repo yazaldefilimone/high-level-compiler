@@ -253,7 +253,7 @@ class EvaMPP {
   saveToFile(filename, code) {
     const runtimeCode = `
 // prologue
-const  {print, spawn} =  require('../src/runtime');
+const  {print, spawn, sleep, scheduler} =  require('../src/runtime');
 ${code}
     `;
     writeFileSync(filename, runtimeCode);
