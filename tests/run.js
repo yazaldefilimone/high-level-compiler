@@ -1,6 +1,6 @@
 const { EvaMPP } = require('../src/transpiler/eva-mpp.js');
 const evaMPP = new EvaMPP();
-const { ast, target } = evaMPP.compile(`
+const testLoop = `
 (var x 10)
 
 
@@ -22,7 +22,36 @@ const { ast, target } = evaMPP.compile(`
     (set index (- index 1))
   )
 )
-`);
+`;
+
+const funTest = `
+(def square (x)
+  (* x x)
+)
+(print (square 10))
+
+(def fun () 
+  (begin
+    (var num 20)
+    (+ num (* 1 2))
+  )
+)
+(print (fun))
+
+`;
+
+const spanedProcess = `
+(def handle (id) 
+  (begin 
+    (print id 1)
+    (print id 2)
+  )
+)
+
+(spawn (handle "x"))
+(spawn (handle "y"))
+`;
+const { ast, target } = evaMPP.compile(spanedProcess);
 
 console.log('---- ast ----');
 console.log(JSON.stringify(ast, null, 2));
