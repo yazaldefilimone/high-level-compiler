@@ -184,6 +184,55 @@ class EvaMPP {
         elements,
       };
     }
+    // (idx data 0)
+    if (expression[0] === 'idx') {
+      const [_, object, property] = expression;
+      return {
+        type: types.MemberExpression,
+        object: this._generate(object),
+        property: this._generate(property),
+        computed: true,
+      };
+    }
+
+    // (rec (name "yazalde") (age 19))
+
+    if (expression[0] === 'rec') {
+      const [_, ...evaProperties] = expression;
+
+      const buildProperty = (entry) => {
+        if (Array.isArray(entry)) {
+          const [key, value] = entry;
+          return {
+            type: types.ObjectProperty,
+            key: this._generate(key),
+            value: this._generate(value),
+          };
+        }
+        const gen = this._generate(entry);
+        return {
+          type: types.ObjectProperty,
+          key: gen,
+          value: gen,
+        };
+      };
+
+      const properties = evaProperties.map(buildProperty);
+      return {
+        type: types.ObjectExpression,
+        properties,
+      };
+    }
+    // (prop data name)
+    if (expression[0] === 'prop') {
+      const [_, object, property] = expression;
+      return {
+        type: types.MemberExpression,
+        object: this._generate(object),
+        property: this._generate(property),
+        computed: false,
+      };
+    }
     // functions call : [print x]
     if (Array.isArray(expression)) {
       const [name, ...args] = expression;
@@ -266,6 +315,7 @@ class EvaMPP {
       case types.LogicalExpression:
       case types.ArrayExpression:
       case types.YieldExpression:
+      case types.ObjectExpression:
         return { type: types.ExpressionStatement, expression };
       default:
         return expression;
