@@ -18,6 +18,9 @@ const types = {
   ReturnStatement: `ReturnStatement`,
   YieldExpression: `YieldExpression`,
   ArrayExpression: `ArrayExpression`,
+  MemberExpression: `MemberExpression`,
+  ObjectExpression: `ObjectExpression`,
+  ObjectProperty: `ObjectProperty`,
 };
 const internalType = {
   spawn: `spawn`,
