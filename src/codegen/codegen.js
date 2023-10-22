@@ -29,7 +29,12 @@ class JSCodeGen {
     const id = this._generate(expression.id);
     const params = expression.params.map((current) => this._generate(current)).join(', ');
     const body = this._generate(expression.body);
-    return `\nfunction ${id}(${params}) ${body}\n`;
+    const generator = expression.generator ? '*' : '';
+    const async = expression.async ? 'async ' : '';
+    return `\n${async}function${generator} ${id}(${params}) ${body}\n`;
+  }
+  YieldExpression(expression) {
+    return 'yield';
   }
   CallExpression(expression) {
     const call = this._generate(expression.callee);
