@@ -39,19 +39,32 @@ const funTest = `
 (print (fun))
 
 `;
-
+// green thread
 const spanedProcess = `
 (def handle (id) 
   (begin 
     (print id 1)
     (print id 2)
+    (print id 3)
+    (print id 4)
+    (print id 5)
+    (print id 6)
   )
 )
 
 (spawn handle "x")
 (spawn handle "y")
 `;
-const { ast, target } = evaMPP.compile(spanedProcess);
+
+const data_structure = `
+(var arr (list 1 2 3 "Yazalde" "Filimone"))
+(var name "Yazalde Filimone")
+(var obect (rec (age 19) name))
+(print (idx arr 4))
+(print (prop obect name))
+
+`;
+const { ast, target } = evaMPP.compile(data_structure);
 
 console.log('---- ast ----');
 console.log(JSON.stringify(ast, null, 2));
