@@ -233,6 +233,28 @@ class EvaMPP {
         computed: false,
       };
     }
+
+    // pattern match
+
+    if (expression[0] === 'match') {
+      const [_, match] = expression;
+      const expressionMatch = this._generate(match);
+      let topLevelTry;
+      let insertBlock;
+      let index = 2;
+      do {
+        const currentExpression = this._generate(expression[index]);
+        const [pattern, IFNode] = transform.expressionToPatternMatch(currentExpression, expressionMatch);
+
+        const handler = this._toStatement(this._generate(expression[index + 1]));
+        console.log({ pattern: pattern?.properties[0]?.value, IFNode, handler });
+        index += 2;
+      } while (index < expression.length);
+
+      return topLevelTry;
+    }
+
+    // -----
     // functions call : [print x]
     if (Array.isArray(expression)) {
       const [name, ...args] = expression;
@@ -359,7 +381,7 @@ class EvaMPP {
   saveToFile(filename, code) {
     const runtimeCode = `
 // prologue
-const  {print, spawn, sleep, scheduler} =  require('../src/runtime');
+const  {print,spawn,sleep,scheduler,NextMath} =  require('../src/runtime');
 ${code}
     `;
     writeFileSync(filename, runtimeCode);
