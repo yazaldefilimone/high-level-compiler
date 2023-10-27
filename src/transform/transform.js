@@ -35,7 +35,6 @@ class Transform {
   expressionToPatternMatch(currentExpression, expressionMatch, checks = []) {
     // (x) (y 2) -> {x: 1, y:_y}
     // if(_y !== 2) throw NextMatch
-
     if (currentExpression.type === types.ObjectExpression) {
       currentExpression.properties.forEach((property) => {
         if (property.value.type === types.Identifier) {
@@ -57,6 +56,7 @@ class Transform {
     }
 
     if (currentExpression.type === types.StringLiteral || currentExpression.type === types.NumericLiteral) {
+      console.log({ currentExpression });
       checks.push(this._createValueCompare(currentExpression, expressionMatch));
       const IFNode = this._createIFTest(checks);
       return [null, IFNode];
@@ -104,7 +104,7 @@ class Transform {
     }
 
     const consequent = {
-      type: types.TryStatement,
+      type: types.ThrowStatement,
       argument: {
         type: types.Identifier,
         name: internalType.NextMath,
