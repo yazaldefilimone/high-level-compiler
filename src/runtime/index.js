@@ -15,4 +15,6 @@ function spawn(fn, ...args) {
 async function sleep(ms = 100) {
   return await scheduler.sleep(ms);
 }
-module.exports = { print, spawn, sleep, scheduler };
+
+const NextMath = {};
+module.exports = { print, spawn, sleep, scheduler, NextMath };
