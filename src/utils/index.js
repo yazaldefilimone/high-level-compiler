@@ -21,7 +21,10 @@ const types = {
   MemberExpression: `MemberExpression`,
   ObjectExpression: `ObjectExpression`,
   ObjectProperty: `ObjectProperty`,
+  ObjectPattern: `ObjectPattern`,
   TryStatement: `TryStatement`,
+  ThrowStatement: `ThrowStatement`,
+  CatchClause: `CatchClause`,
 };
 const internalType = {
   spawn: `spawn`,
