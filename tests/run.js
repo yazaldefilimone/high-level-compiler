@@ -64,7 +64,15 @@ const data_structure = `
 (print (prop obect name))
 
 `;
-const { ast, target } = evaMPP.compile(data_structure);
+const pattern_match = `
+(var pattern (rec (x 1) (y 2)))
+(match pattern
+(rec (x 1) (y 2)) (print "x is" x "y is" y)
+1 (print "1")
+_ (print "no match")
+)
+`;
+const { ast, target } = evaMPP.compile(pattern_match);
 
 console.log('---- ast ----');
 console.log(JSON.stringify(ast, null, 2));
