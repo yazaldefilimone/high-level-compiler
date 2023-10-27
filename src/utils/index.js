@@ -21,8 +21,10 @@ const types = {
   MemberExpression: `MemberExpression`,
   ObjectExpression: `ObjectExpression`,
   ObjectProperty: `ObjectProperty`,
+  TryStatement: `TryStatement`,
 };
 const internalType = {
   spawn: `spawn`,
+  NextMath: `NextMath`,
 };
 module.exports = { types, internalType };
