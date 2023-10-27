@@ -91,6 +91,9 @@ class JSCodeGen {
   Identifier(expression) {
     return expression.name;
   }
+  TryStatement(expression) {
+    return `throw ${this._generate(expression.argument)}`;
+  }
   BlockStatement(expression) {
     this._currentIndent += this._indent;
     let code = '{\n' + expression.body.map((exp) => this._ind() + this._generate(exp)).join('\n') + '\n';
