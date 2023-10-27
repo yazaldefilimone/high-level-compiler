@@ -1,4 +1,4 @@
-const { types } = require('../utils');
+const { types, internalType } = require('../utils');
 
 class Transform {
   functionToAsyncGenerator(ast) {
@@ -30,6 +30,92 @@ class Transform {
       body: generatorBody,
     };
     return generatorFn;
+  }
+
+  expressionToPatternMatch(currentExpression, expressionMatch, checks = []) {
+    // (x) (y 2) -> {x: 1, y:_y}
+    // if(_y !== 2) throw NextMatch
+
+    if (currentExpression.type === types.ObjectExpression) {
+      currentExpression.properties.forEach((property) => {
+        if (property.value.type === types.Identifier) {
+          return;
+        }
+
+        if (property.value.type === types.StringLiteral || property.value.type === types.NumericLiteral) {
+          checks.push(this._createPropertyCompare(property));
+        }
+        // recursion
+        if (property.value.type === types.ObjectExpression) {
+          return this.expressionToPatternMatch(property.value, expressionMatch, checks);
+        }
+      });
+
+      const IFNode = this._createIFTest(checks);
+
+      return [currentExpression, IFNode];
+    }
+
+    if (currentExpression.type === types.StringLiteral || currentExpression.type === types.NumericLiteral) {
+      checks.push(this._createValueCompare(currentExpression, expressionMatch));
+      const IFNode = this._createIFTest(checks);
+      return [null, IFNode];
+    }
+    // _ -> ...
+    if (currentExpression.type === types.Identifier) {
+      return [null, null];
+    }
+  }
+
+  _createPropertyCompare(property) {
+    const expected = property.value;
+
+    const blinding = {
+      type: types.Identifier,
+      name: `_${property.key.name}`,
+    };
+
+    property.value = blinding;
+    return this._createValueCompare(blinding, expected);
+  }
+
+  _createValueCompare(blinding, expected) {
+    return {
+      type: types.BinaryExpression,
+      left: blinding,
+      operator: '!==',
+      right: expected,
+    };
+  }
+
+  _createIFTest(checks) {
+    const IFConditionExpression = checks[0];
+
+    let index = 2;
+
+    while (index < checks.length) {
+      IFConditionExpression = {
+        type: types.LogicalExpression,
+        left: IFConditionExpression,
+        operator: '||',
+        right: checks[index],
+      };
+      index++;
+    }
+
+    const consequent = {
+      type: types.TryStatement,
+      argument: {
+        type: types.Identifier,
+        name: internalType.NextMath,
+      },
+    };
+
+    return {
+      type: types.IfStatement,
+      test: IFConditionExpression,
+      consequent,
+    };
   }
 }
 
