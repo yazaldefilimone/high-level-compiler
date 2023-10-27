@@ -91,8 +91,14 @@ class JSCodeGen {
   Identifier(expression) {
     return expression.name;
   }
-  TryStatement(expression) {
+  ThrowStatement(expression) {
     return `throw ${this._generate(expression.argument)}`;
+  }
+  TryStatement(expression) {
+    return `try ${this._generate(expression.block)} ${this._generate(expression.handler)}`;
+  }
+  CatchClause(expression) {
+    return `catch (${this._generate(expression.param)}) ${this._generate(expression.body)}`;
   }
   BlockStatement(expression) {
     this._currentIndent += this._indent;
@@ -112,9 +118,9 @@ class JSCodeGen {
 
   IfStatement(exp) {
     const test = `${this._generate(exp.test)}`;
-    const consequence = `${this._generate(exp.consequence)}`;
+    const consequent = `${this._generate(exp.consequent)}`;
     const alternative = exp.alternative ? `else ${this._generate(exp.alternative)}` : '';
-    return `if(${test}) ${consequence} ${alternative}`;
+    return `if(${test}) ${consequent} ${alternative}`;
   }
   WhileStatement(exp) {
     const test = `${this._generate(exp.test)}`;
