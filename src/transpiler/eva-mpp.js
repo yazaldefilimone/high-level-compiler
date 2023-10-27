@@ -12,6 +12,7 @@ class EvaMPP {
     this._mapFns$ = new Map();
     const evaAst = parser.parse(`(begin ${program})`);
     const javaScriptAst = this._generateProgram(evaAst);
+    // console.log(JSON.stringify(javaScriptAst, null, 2));
     const target = codeGen.generate(javaScriptAst);
     this.saveToFile('./tests/out.js', target);
 
@@ -245,12 +246,87 @@ class EvaMPP {
       do {
         const currentExpression = this._generate(expression[index]);
         const [pattern, IFNode] = transform.expressionToPatternMatch(currentExpression, expressionMatch);
-
+        console.log('IFNOdE:');
+        console.log(pattern);
+        console.log(JSON.stringify(IFNode, null, 2));
         const handler = this._toStatement(this._generate(expression[index + 1]));
-        console.log({ pattern: pattern?.properties[0]?.value, IFNode, handler });
+        const tryBody = [handler];
+        if (pattern === null && IFNode === null) {
+          insertBlock.body.push(handler);
+          return topLevelTry;
+        }
+
+        if (IFNode !== null) {
+          tryBody.unshift(IFNode);
+        }
+        if (pattern !== null) {
+          const destructorVariable = {
+            type: types.VariableDeclaration,
+            declarations: [
+              {
+                type: types.VariableDeclarator,
+                id: pattern,
+                init: expressionMatch,
+              },
+            ],
+          };
+          tryBody.unshift(destructorVariable);
+        }
+
+        // catch(e){...}
+        const catchParamExpression = {
+          type: types.Identifier,
+          name: 'e',
+        };
+
+        // if(e !== NextMatch) {..}
+        const nextMatchExpression = {
+          type: types.Identifier,
+          name: internalType.NextMath,
+        };
+
+        const nextMatchIFExpression = {
+          type: types.IfStatement,
+          test: {
+            type: types.BinaryExpression,
+            left: catchParamExpression,
+            operator: '!==',
+            right: nextMatchExpression,
+          },
+          consequent: {
+            type: types.ThrowStatement,
+            argument: catchParamExpression,
+          },
+        };
+
+        const tryNodeExpression = {
+          type: types.TryStatement,
+          block: {
+            type: types.BlockStatement,
+            body: tryBody,
+          },
+          handler: {
+            type: types.CatchClause,
+            param: catchParamExpression,
+            body: {
+              type: types.BlockStatement,
+              body: [nextMatchIFExpression],
+            },
+          },
+        };
+
+        if (Boolean(insertBlock)) {
+          insertBlock.body.push(tryBody);
+        }
+
+        if (!Boolean(topLevelTry)) {
+          topLevelTry = tryNodeExpression;
+        }
+
+        // insert next block
+        insertBlock = tryNodeExpression.handler.body;
         index += 2;
       } while (index < expression.length);
-
       return topLevelTry;
     }
 
