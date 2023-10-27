@@ -66,11 +66,13 @@ const data_structure = `
 `;
 const pattern_match = `
 (var pattern (rec (x 1) (y 2)))
+
 (match pattern
-(rec (x 1) (y 2)) (print "x is" x "y is" y)
-1 (print "1")
-_ (print "no match")
+  (rec (x 1) (y 2)) (print "x is" _x "y is" _y)
+  1 (print "1")
+  _ (print "no match")
 )
+
 `;
 const { ast, target } = evaMPP.compile(pattern_match);
 
