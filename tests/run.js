@@ -68,7 +68,7 @@ const pattern_match = `
 (var pattern (rec (x 1) (y 2)))
 
 (match pattern
-  (rec (x 1) (y 2)) (print "x is" _x "y is" _y)
+  (rec (x 1) y) (print "x match x y is" y)
   1 (print "1")
   _ (print "no match")
 )
