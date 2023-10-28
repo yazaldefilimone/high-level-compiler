@@ -12,7 +12,7 @@ class EvaMPP {
     this._mapFns$ = new Map();
     const evaAst = parser.parse(`(begin ${program})`);
     const javaScriptAst = this._generateProgram(evaAst);
-    // console.log(JSON.stringify(javaScriptAst, null, 2));
+    console.log(JSON.stringify(javaScriptAst, null, 2));
     const target = codeGen.generate(javaScriptAst);
     this.saveToFile('./tests/out.js', target);
 
@@ -246,20 +246,19 @@ class EvaMPP {
       do {
         const currentExpression = this._generate(expression[index]);
         const [pattern, IFNode] = transform.expressionToPatternMatch(currentExpression, expressionMatch);
-        console.log('IFNOdE:');
-        console.log(pattern);
-        console.log(JSON.stringify(IFNode, null, 2));
-        const handler = this._toStatement(this._generate(expression[index + 1]));
-        const tryBody = [handler];
-        if (pattern === null && IFNode === null) {
+        const middle = expression[index + 1];
+        const handler = this._toStatement(this._generate(middle));
+        const tryBodyStatement = [handler];
+        if (!Boolean(pattern) && !Boolean(IFNode)) {
           insertBlock.body.push(handler);
           return topLevelTry;
         }
 
-        if (IFNode !== null) {
-          tryBody.unshift(IFNode);
+        if (Boolean(IFNode)) {
+          tryBodyStatement.unshift(IFNode);
         }
-        if (pattern !== null) {
+
+        if (Boolean(pattern)) {
           const destructorVariable = {
             type: types.VariableDeclaration,
             declarations: [
@@ -270,7 +269,7 @@ class EvaMPP {
               },
             ],
           };
-          tryBody.unshift(destructorVariable);
+          tryBodyStatement.unshift(destructorVariable);
         }
 
         // catch(e){...}
@@ -303,7 +302,7 @@ class EvaMPP {
           type: types.TryStatement,
           block: {
             type: types.BlockStatement,
-            body: tryBody,
+            body: tryBodyStatement,
           },
           handler: {
             type: types.CatchClause,
@@ -316,7 +315,7 @@ class EvaMPP {
         };
 
         if (Boolean(insertBlock)) {
-          insertBlock.body.push(tryBody);
+          insertBlock.body.push(tryNodeExpression);
         }
 
         if (!Boolean(topLevelTry)) {
@@ -327,6 +326,7 @@ class EvaMPP {
         insertBlock = tryNodeExpression.handler.body;
         index += 2;
       } while (index < expression.length);
+
       return topLevelTry;
     }
 
