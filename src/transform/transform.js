@@ -45,7 +45,7 @@ class Transform {
           checks.push(this._createPropertyCompare(property));
         }
         // recursion
-        if (property.value.type === types.ObjectExpression) {
+        else if (property.value.type === types.ObjectExpression) {
           return this.expressionToPatternMatch(property.value, expressionMatch, checks);
         }
       });
@@ -56,7 +56,6 @@ class Transform {
     }
 
     if (currentExpression.type === types.StringLiteral || currentExpression.type === types.NumericLiteral) {
-      console.log({ currentExpression });
       checks.push(this._createValueCompare(currentExpression, expressionMatch));
       const IFNode = this._createIFTest(checks);
       return [null, IFNode];
