@@ -54,8 +54,16 @@ class JSCodeGen {
   ObjectProperty(expression) {
     return `${this._generate(expression.key)}: ${this._generate(expression.value)}`;
   }
+  ThisExpression(expression) {
+    return `this`;
+  }
+  AwaitExpression(expression) {
+    return `await ${this._generate(expression.argument)}`;
+  }
   YieldExpression(expression) {
-    return 'yield';
+    const delegate = expression.delegate ? '*' : '';
+    const argument = expression.argument ? `${this._generate(expression.argument)}` : '';
+    return `yield${delegate}${argument}`;
   }
   CallExpression(expression) {
     const call = this._generate(expression.callee);
@@ -118,9 +126,9 @@ class JSCodeGen {
 
   IfStatement(exp) {
     const test = `${this._generate(exp.test)}`;
-    const consequent = `${this._generate(exp.consequent)}`;
+    const consequence = `${this._generate(exp.consequence)}`;
     const alternative = exp.alternative ? `else ${this._generate(exp.alternative)}` : '';
-    return `if(${test}) ${consequent} ${alternative}`;
+    return `if(${test}) ${consequence} ${alternative}`;
   }
   WhileStatement(exp) {
     const test = `${this._generate(exp.test)}`;
