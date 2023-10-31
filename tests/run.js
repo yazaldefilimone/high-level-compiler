@@ -74,7 +74,51 @@ const pattern_match = `
 )
 
 `;
-const { ast, target } = evaMPP.compile(pattern_match);
+
+const message_process = `
+(def success (param)
+  (print "param = " param)
+)
+
+(def not-found (url)
+  (print "not-found:" url)
+)
+
+(def handle-connection (data)
+    (receive request
+      "hello" (success 20)
+      (rec (code 200) len) 
+        (begin 
+          (success len)
+          (handle-connection data)
+        )
+      
+      (rec (code 204) url) (not-found url) 
+    
+      _ (print data)
+    )
+)
+
+(var handler (spawn handle-connection "default"))
+
+
+(var index 0)
+
+
+(def send-message () 
+  (begin
+    (set index (+ index 1))
+
+    (if (<= index 5) 
+      (send handler (rec (code 200) (len index)))
+      (send handler "hello")
+    )
+  )
+)
+
+(set-interval send-message 100)
+`;
+const { ast, target } = evaMPP.compile(message_process);
 
 console.log('---- ast ----');
 console.log(JSON.stringify(ast, null, 2));
