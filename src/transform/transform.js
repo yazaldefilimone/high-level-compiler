@@ -2,10 +2,11 @@ const { types, internalType } = require('../utils');
 
 class Transform {
   functionToAsyncGenerator(ast) {
-    const generatorFn = {
+    const generatorFunction = {
       type: types.FunctionDeclaration,
       generator: true,
       async: true,
+      body: null,
       id: {
         type: types.Identifier,
         name: `_${ast.id.name}`,
@@ -25,11 +26,11 @@ class Transform {
     for (let index = 1; index < generatorBody.length; index += 2) {
       generatorBody.splice(index, 0, yieldExpression);
     }
-    generatorFn.body = {
+    generatorFunction.body = {
       type: types.BlockStatement,
       body: generatorBody,
     };
-    return generatorFn;
+    return generatorFunction;
   }
 
   expressionToPatternMatch(currentExpression, expressionMatch, checks = []) {
@@ -88,7 +89,7 @@ class Transform {
   }
 
   _createIFTest(checks) {
-    const IFConditionExpression = checks[0];
+    let IFConditionExpression = checks[0];
 
     let index = 2;
 
@@ -102,7 +103,7 @@ class Transform {
       index++;
     }
 
-    const consequent = {
+    const consequence = {
       type: types.ThrowStatement,
       argument: {
         type: types.Identifier,
@@ -113,7 +114,7 @@ class Transform {
     return {
       type: types.IfStatement,
       test: IFConditionExpression,
-      consequent,
+      consequence,
     };
   }
 }
