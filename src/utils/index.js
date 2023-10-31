@@ -25,6 +25,8 @@ const types = {
   TryStatement: `TryStatement`,
   ThrowStatement: `ThrowStatement`,
   CatchClause: `CatchClause`,
+  AwaitExpression: `AwaitExpression`,
+  ThisExpression: `ThisExpression`,
 };
 const internalType = {
   spawn: `spawn`,
