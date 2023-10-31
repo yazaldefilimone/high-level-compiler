@@ -8,14 +8,15 @@ const codeGen = new JSCodeGen();
 const transform = new Transform();
 // Eva Message Passing Process
 class EvaMPP {
+  constructor() {
+    this._currentFunction = null;
+  }
   compile(program) {
-    this._mapFns$ = new Map();
+    this._mapFunctions$ = new Map();
     const evaAst = parser.parse(`(begin ${program})`);
     const javaScriptAst = this._generateProgram(evaAst);
-    console.log(JSON.stringify(javaScriptAst, null, 2));
     const target = codeGen.generate(javaScriptAst);
     this.saveToFile('./tests/out.js', target);
-
     return { ast: javaScriptAst, target };
   }
 
@@ -81,24 +82,32 @@ class EvaMPP {
       if (!this._hasBlock(evaBody)) {
         evaBody = ['begin', evaBody];
       }
-      const last = evaBody.at(-1);
+      const lastIndex = evaBody.length - 1;
+      const last = evaBody[lastIndex];
       if (!this._hasStatement(last) && last[0] !== 'return') {
-        evaBody[evaBody.length - 1] = ['return', last];
+        evaBody[lastIndex] = ['return', last];
       }
-      const body = this._generate(evaBody);
-      const fn = {
+      const internalFunction = {
         type: types.FunctionDeclaration,
         id: this._generate(this._toVariableName(name)),
         params,
-        body,
+        body: null,
       };
-      const mapfn = {
-        fn,
+      const previousFunction = this._currentFunction;
+      this._currentFunction = internalFunction;
+      let block = this._generate(evaBody);
+      // console.log('internalFunction meu test', block);
+
+      internalFunction.body = block;
+      this._currentFunction = previousFunction;
+
+      const storeFunction = {
+        fn: internalFunction,
         block: this._currentBlock,
         index: this._currentBlock.length,
       };
-      this._mapFns$.set(fn.id.name, mapfn);
-      return fn;
+      this._mapFunctions$.set(internalFunction.id.name, storeFunction);
+      return internalFunction;
     }
 
     if (expression[0] === 'begin') {
@@ -292,7 +301,7 @@ class EvaMPP {
             operator: '!==',
             right: nextMatchExpression,
           },
-          consequent: {
+          consequence: {
             type: types.ThrowStatement,
             argument: catchParamExpression,
           },
@@ -331,20 +340,77 @@ class EvaMPP {
     }
 
     // -----
+    // receive: (receive pattern match match match...)
+    // syntax sugar for awaiting a message and call "ex: match ()"
+
+    if (expression[0] === 'receive') {
+      const [_tag, pattern] = expression;
+      this._currentFunction.id.name = `_${this._currentFunction.id.name}`;
+      this._currentFunction.async = true;
+      this._currentFunction.generator = true;
+      const awaitVariableInitialize = {
+        type: types.AwaitExpression,
+        argument: {
+          type: types.CallExpression,
+          callee: {
+            type: types.Identifier,
+            name: `receive`,
+          },
+          arguments: [
+            {
+              type: types.ThisExpression,
+            },
+          ],
+        },
+      };
+      const id = this._generate(pattern);
+      console.log({ pattern, id });
+
+      const awaitVariable = {
+        type: types.VariableDeclaration,
+        declarations: [
+          {
+            type: types.VariableDeclarator,
+            id,
+            init: awaitVariableInitialize,
+          },
+        ],
+      };
+      // converte `receive` to `match pattern`
+      expression[0] = 'match';
+      const matchExpression = this._generate(expression);
+      const block = {
+        type: types.BlockStatement,
+        body: [awaitVariable, matchExpression],
+      };
+      return block;
+    }
+
+    // -----
     // functions call : [print x]
     if (Array.isArray(expression)) {
       const [name, ...args] = expression;
-      const jsName = this._toVariableName(name);
-      const callee = this._generate(jsName);
+      let functionName = this._toVariableName(name);
+
+      const isRecursiveCall = Boolean(
+        this._currentFunction !== null &&
+          this._currentFunction.generator &&
+          this._currentFunction.id.name.slice(1) === functionName,
+      );
+
+      if (isRecursiveCall) {
+        functionName = this._currentFunction.id.name;
+      }
+
+      const callee = this._generate(functionName);
       const _arguments = args.map((current) => this._generate(current));
 
       // dynamic allocate a process function if the original function is used spawn
       if (callee.name === internalType.spawn) {
         const originalFnName = _arguments[0].name;
         const processFnName = `_${originalFnName}`;
-
-        if (!this._mapFns$.has(processFnName)) {
-          const originalStoreFn = this._mapFns$.get(originalFnName);
+        if (!this._mapFunctions$.has(processFnName)) {
+          const originalStoreFn = this._mapFunctions$.get(originalFnName);
           const processFn = transform.functionToAsyncGenerator(originalStoreFn.fn);
           const mapProcessFn = {
             ...originalStoreFn,
@@ -352,18 +418,39 @@ class EvaMPP {
             index: originalStoreFn.index + 1, // add a new process function underneath the original function
           };
 
-          this._mapFns$.set(processFnName, mapProcessFn); // store a new process function
+          this._mapFunctions$.set(processFnName, mapProcessFn); // store a new process function
 
           // put under to original function a new process function
           const originalFnBlockWithProcessFn = originalStoreFn.block.splice(mapProcessFn.index, 0, processFn);
 
           // update the original block with new process function
-          this._mapFns$.set(originalFnName, originalFnBlockWithProcessFn);
+          this._mapFunctions$.set(originalFnName, originalFnBlockWithProcessFn);
         }
         //  pointing the function call name to the  process function name
         _arguments[0].name = processFnName;
       }
 
+      if (isRecursiveCall) {
+        const yieldExpression = {
+          type: types.YieldExpression,
+          delegate: true,
+          argument: {
+            type: types.CallExpression,
+            callee: {
+              type: types.MemberExpression,
+              object: callee,
+              property: {
+                type: types.Identifier,
+                name: 'call',
+              },
+            },
+            arguments: [{ type: types.ThisExpression }, ..._arguments],
+          },
+        };
+
+        return yieldExpression;
+      }
+      // simple call func
       return {
         type: types.CallExpression,
         callee,
@@ -414,6 +501,8 @@ class EvaMPP {
       case types.ArrayExpression:
       case types.YieldExpression:
       case types.ObjectExpression:
+      case types.ThisExpression:
+      case types.AwaitExpression:
         return { type: types.ExpressionStatement, expression };
       default:
         return expression;
@@ -448,7 +537,8 @@ class EvaMPP {
     return Boolean(operator === 'or' || operator === 'and');
   }
   _hasBlock(expression) {
-    return Boolean(expression[0] === 'begin');
+    const tag = expression[0];
+    return Boolean(tag === 'begin' || tag === 'receive');
   }
   _hasStatement(expression) {
     const exp = expression[0];
@@ -457,7 +547,7 @@ class EvaMPP {
   saveToFile(filename, code) {
     const runtimeCode = `
 // prologue
-const  {print,spawn,sleep,scheduler,NextMath} =  require('../src/runtime');
+const  {print, spawn, send, receive, sleep, scheduler, NextMath } =  require('../src/runtime');
 ${code}
     `;
     writeFileSync(filename, runtimeCode);
