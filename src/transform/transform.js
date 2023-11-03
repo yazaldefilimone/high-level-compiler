@@ -89,6 +89,7 @@ class Transform {
   }
 
   _createIFTest(checks) {
+    if (checks.length === 0) return null;
     let IFConditionExpression = checks[0];
 
     let index = 2;
