@@ -11,12 +11,12 @@ class EvaMPP {
   constructor() {
     this._currentFunction = null;
   }
-  compile(program) {
+  compile(program, outFile) {
     this._mapFunctions$ = new Map();
     const evaAst = parser.parse(`(begin ${program})`);
     const javaScriptAst = this._generateProgram(evaAst);
     const target = codeGen.generate(javaScriptAst);
-    this.saveToFile('./tests/out.js', target);
+    this.saveToFile(outFile, target);
     return { ast: javaScriptAst, target };
   }
 
@@ -257,7 +257,8 @@ class EvaMPP {
         const [pattern, IFNode] = transform.expressionToPatternMatch(currentExpression, expressionMatch);
         const middle = expression[index + 1];
         const handler = this._toStatement(this._generate(middle));
-        const tryBodyStatement = [handler];
+        const tryBodyStatement = handler.type === types.BlockStatement ? handler.body : [handler];
+
         if (!Boolean(pattern) && !Boolean(IFNode)) {
           insertBlock.body.push(handler);
           return topLevelTry;
@@ -364,8 +365,6 @@ class EvaMPP {
         },
       };
       const id = this._generate(pattern);
-      console.log({ pattern, id });
-
       const awaitVariable = {
         type: types.VariableDeclaration,
         declarations: [
@@ -474,6 +473,7 @@ class EvaMPP {
     };
   }
   _toVariableName(exp) {
+    if (exp === 'self') return 'this';
     return this._toJsName(exp);
   }
   _toJsName(name) {
