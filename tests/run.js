@@ -118,6 +118,14 @@ const message_process = `
 
 (set-interval send-message 100)
 `;
+
+const case_study = `
+(prop self name)
+(match (rec (x 10))
+  (rec x) (print self)
+  _ (print "not found")
+)
+`;
 const { ast, target } = evaMPP.compile(message_process);
 
 console.log('---- ast ----');
