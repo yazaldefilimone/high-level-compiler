@@ -11,7 +11,7 @@ class EvaMPP {
   constructor() {
     this._currentFunction = null;
   }
-  compile(program, outFile) {
+  compile(program, outFile = './out.js') {
     this._mapFunctions$ = new Map();
     const evaAst = parser.parse(`(begin ${program})`);
     const javaScriptAst = this._generateProgram(evaAst);
@@ -403,7 +403,17 @@ class EvaMPP {
 
       const callee = this._generate(functionName);
       const _arguments = args.map((current) => this._generate(current));
-
+      //  pass await after sleep
+      if (callee.name === internalType.sleep) {
+        return {
+          type: types.AwaitExpression,
+          argument: {
+            type: types.CallExpression,
+            callee,
+            arguments: _arguments,
+          },
+        };
+      }
       // dynamic allocate a process function if the original function is used spawn
       if (callee.name === internalType.spawn) {
         const originalFnName = _arguments[0].name;
@@ -547,7 +557,7 @@ class EvaMPP {
   saveToFile(filename, code) {
     const runtimeCode = `
 // prologue
-const  {print, spawn, send, receive, sleep, scheduler, NextMath } =  require('../src/runtime');
+// const  {print, spawn, send, receive, sleep, scheduler, NextMath } =  require('../src/runtime');
 ${code}
     `;
     writeFileSync(filename, runtimeCode);
