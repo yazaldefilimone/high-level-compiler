@@ -33,7 +33,7 @@ class Scheduler {
     console.log(`${receiver} stopped receiving messages.`);
   }
   spawn(handlerFunction, ...args) {
-    const process = new Process(handlerFunction, args);
+    const process = new Process(handlerFunction, ...args);
     this.processes.add(process);
     console.log(`* Spawning a new process ${process}`);
     this.schedule(process);
