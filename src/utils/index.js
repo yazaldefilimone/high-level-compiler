@@ -30,6 +30,7 @@ const types = {
 };
 const internalType = {
   spawn: `spawn`,
+  sleep: `sleep`,
   NextMath: `NextMath`,
 };
 module.exports = { types, internalType };
