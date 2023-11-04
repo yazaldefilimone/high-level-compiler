@@ -126,7 +126,31 @@ const case_study = `
   _ (print "not found")
 )
 `;
-const { ast, target } = evaMPP.compile(message_process);
+
+const web = `
+(def handle-process (el)
+  (while (< (get-width el) RACE_LENGTH)
+    (receive request
+      (rec sender delay delta)
+        (begin
+          (inc-width el delta)
+          (var receiver (get-random-process))
+
+          (send receiver 
+            (rec 
+              (sender self)
+              (delay (random 50 200))
+              (delta (random 5 50))
+            )
+          )
+
+          (sleep delay)
+        )
+    )
+  )
+)
+`;
+const { ast, target } = evaMPP.compile(web);
 
 console.log('---- ast ----');
 console.log(JSON.stringify(ast, null, 2));
