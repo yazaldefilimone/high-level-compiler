@@ -9,7 +9,7 @@ function print(...args) {
 }
 
 function spawn(internalFunction, ...args) {
-  return scheduler.spawn(internalFunction, args);
+  return scheduler.spawn(internalFunction, ...args);
 }
 
 async function sleep(ms = 20) {
