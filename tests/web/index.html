@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eva Process Message Language</title>
+    <style type="text/css">
+      body {
+        background-color: #333;
+      }
+      .process {
+        width: 0px;
+        margin-top: 2px;
+        height: 20px;
+        transition: width 0.3s;
+        text-align: center;
+        color: #fff;
+        border: 1px solid #333;
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          Oxygen,
+          Ubuntu,
+          Cantarell,
+          'Open Sans',
+          'Helvetica Neue',
+          sans-serif;
+      }
+      .finish {
+        position: absolute;
+        left: 1000px;
+        height: 120px;
+        width: 5px;
+        background-color: #04b0d2;
+        border: 1px solid #000;
+        font-size: 60px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="finish">🏁</div>
+    <!-- comment module.exports to use in web -->
+    <script type="text/javascript" src="../../src/runtime/process.js"></script>
+    <script type="text/javascript" src="../../src/runtime/scheduler.js"></script>
+    <script type="text/javascript" src="../../src/runtime/index.js"></script>
+    <script type="text/javascript" src="./out.js"></script>
+    <script type="text/javascript">
+      //  utils functions:
+
+      const RACE_LENGTH = 1000;
+
+      function incWidth(el, delta) {
+        console.log(el.style);
+        let newWidth = getWidth(el) + delta;
+
+        if (newWidth > RACE_LENGTH) {
+          newWidth = RACE_LENGTH;
+        }
+
+        el.style.width = `${newWidth}px`;
+      }
+
+      function getWidth(el) {
+        return parseInt(el.style?.width, 10) || 0;
+      }
+      function radomHexColor() {
+        const letters = `0123456789ABCDEF`;
+        let color = `#`;
+
+        for (let index = 0; index < 6; index++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+      }
+
+      function random(min, max) {
+        const current = Math.floor(Math.random() * (max - min + 1)) + min;
+        return current;
+      }
+
+      function createElement() {
+        const el = document.createElement('div');
+        el.className = 'process';
+        el.style = `background-color: ${radomHexColor()}; `;
+        el.innerHTML = `process #${Process.pid + 1}`;
+        document.body.appendChild(el);
+        return el;
+      }
+
+      // create process
+
+      const PROCESS_COUNT = 5;
+      const processes = [];
+
+      for (let index = 0; index < PROCESS_COUNT; index++) {
+        processes.push(spawn(_handleProcess, createElement()));
+      }
+
+      function getRandomProcess() {
+        const current = processes[random(0, PROCESS_COUNT - 1)];
+        return current;
+      }
+
+      const sender = getRandomProcess();
+      const receiver = getRandomProcess();
+
+      send(receiver, {
+        sender,
+        delay: random(50, 200),
+        delta: random(5, 50),
+      });
+    </script>
+  </body>
+</html>
