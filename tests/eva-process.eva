@@ -1,42 +1,28 @@
-(def success (param)
-  (print "param = " param)
-)
-
-(def not-found (url)
-  (print "not-found:" url)
-)
-
-(def handle-connection (data)
-    (receive request
-      "hello" (success 20)
-      (rec (code 200) len) 
-        (begin 
-          (success len)
-          (handle-connection data)
-        )
-      
-      (rec (code 204) url) (not-found url) 
-    
-      _ (print data)
-    )
-)
-/**  
-* (var handler (spawn handle-connection "default"))
-* 
-* 
-* (var index 0)
-* 
-* 
-* (def send-message () 
-*   (begin
-*     (set index (+ index 1))
-
-*     (if (<= index 5) 
-*       (send handler (rec (code 200) (len index)))
-*       (send handler "hello")
-*     )
-*   )
-* )
+/**
+* Process Handler
 *
-* (set-interval send-message 100)
 */
+
+
+
+(def handler-process (el)
+  (while (< (get-width el) RACE_LENGTH)
+    (receive request
+      (rec sender delay delta)
+        (begin
+          (inc-width el delta)
+          (var receiver (get-random-process))
+
+          (send receiver 
+            (rec 
+              (sender self)
+              (delay (random 50 200))
+              (delta (random 5 50))
+            )
+          )
+
+          (sleep delay)
+        )
+    )
+  )
+)
