@@ -152,7 +152,7 @@ const web = `
 `;
 
 const for_loop = `
-(for (var index 0) (< index 10) (set index  (+ index 1))
+(for (var index 0) (< index 10) (++ index)
   (print "current index: " index)
 )
 `;
