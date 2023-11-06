@@ -150,7 +150,7 @@ const web = `
   )
 )
 `;
-const { ast, target } = evaMPP.compile(web);
+const { ast, target } = evaMPP.compile(pattern_match);
 
 console.log('---- ast ----');
 console.log(JSON.stringify(ast, null, 2));
