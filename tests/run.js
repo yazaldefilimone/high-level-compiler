@@ -150,7 +150,13 @@ const web = `
   )
 )
 `;
-const { ast, target } = evaMPP.compile(web);
+
+const for_loop = `
+(for (var index 0) (< index 10) (set index  (+ index 1))
+  (print "current index: " index)
+)
+`;
+const { ast, target } = evaMPP.compile(for_loop, './tests/out.js');
 
 console.log('---- ast ----');
 console.log(JSON.stringify(ast, null, 2));
