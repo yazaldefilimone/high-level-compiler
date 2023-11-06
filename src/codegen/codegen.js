@@ -115,6 +115,10 @@ class JSCodeGen {
     code += this._ind() + '}';
     return code;
   }
+  ForStatement(expression) {
+    let code = expression.body.map((exp) => this._generate(exp)).join('\n');
+    return code;
+  }
 
   ReturnStatement({ argument }) {
     return `return ${this._generate(argument)};`;
