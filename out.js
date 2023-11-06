@@ -1,20 +1,19 @@
 
 // prologue
 // const  {print, spawn, send, receive, sleep, scheduler, NextMath } =  require('../src/runtime');
-
-async function* _handleProcess(el) {
-  while((getWidth(el) < RACE_LENGTH)) {
-    let request = await receive(this);
-    try {
-      let { sender: sender, delay: delay, delta: delta } = request;
-      incWidth(el, delta);
-      let receiver = getRandomProcess();
-      send(receiver, { sender: this, delay: random(50, 200), delta: random(5, 50) });
-      await sleep(delay);
-    } catch (e) {
-      if((e !== NextMath)) throw e 
-    }
-  } 
+let pattern = { x: 1, y: 2 };
+try {
+  let { x: c851_x, y: y } = pattern;
+  if((c851_x !== 1)) throw NextMath 
+  print("x match x y is", y);
+} catch (e) {
+  if((e !== NextMath)) throw e 
+  try {
+    if((1 !== pattern)) throw NextMath 
+    print("1");
+  } catch (e) {
+    if((e !== NextMath)) throw e 
+    print("no match");
+  }
 }
-
     
