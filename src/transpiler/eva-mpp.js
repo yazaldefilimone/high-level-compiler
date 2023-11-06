@@ -67,6 +67,8 @@ class EvaMPP {
         right: this._generate(right),
       };
     }
+    // assignment  =  [++ x]
+    // assignment  =  [-- x]
     // return  = (return 1)
     if (expression[0] === 'return') {
       const [_tag, args] = expression;
@@ -159,6 +161,12 @@ class EvaMPP {
         case 'not':
           operator = '!';
           break;
+        case '--':
+          operator = '--';
+          break;
+        case '++':
+          operator = '++';
+          break;
         default:
           throw `Unknown unary operator: ${expression[0]}`;
       }
@@ -242,6 +250,38 @@ class EvaMPP {
         property: this._generate(property),
         computed: false,
       };
+    }
+
+    /*
+    (for (var index 0) (< index 10) (set index  (+ index 1))
+      (print "current index: " index)
+    )
+     */
+
+    if (expression[0] === 'for') {
+      const [_tag, init, test, update, ForBody] = expression;
+      let body;
+      if (update.length === 0) {
+        body = this._generate(['begin', ForBody]);
+      } else {
+        body = this._generate(['begin', ForBody, update]);
+      }
+      const whileAst = {
+        type: types.WhileStatement,
+        test: this._generate(test),
+        body: this._toStatement(body),
+      };
+      let BodyAst;
+      if (init.length === 0) {
+        BodyAst = [whileAst];
+      } else {
+        BodyAst = [this._generate(init), whileAst];
+      }
+      const BlockAst = {
+        type: `ForStatement`,
+        body: BodyAst,
+      };
+      return BlockAst;
     }
 
     // pattern match
@@ -540,7 +580,8 @@ class EvaMPP {
     if (expression.length !== 2) {
       return false;
     }
-    return Boolean(expression[0] === 'not' || expression[0] === '-');
+    const test = expression[0];
+    return Boolean(test === 'not' || test === '-' || test === '++' || test === '--');
   }
   _isLogicalBinary(expression) {
     const operator = expression[0];
@@ -557,7 +598,7 @@ class EvaMPP {
   saveToFile(filename, code) {
     const runtimeCode = `
 // prologue
-// const  {print, spawn, send, receive, sleep, scheduler, NextMath } =  require('../src/runtime');
+const  {print, spawn, send, receive, sleep, scheduler, NextMath } =  require('../src/runtime');
 ${code}
     `;
     writeFileSync(filename, runtimeCode);
