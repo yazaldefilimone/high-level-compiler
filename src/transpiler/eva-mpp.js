@@ -67,6 +67,8 @@ class EvaMPP {
         right: this._generate(right),
       };
     }
+    // assignment  =  [++ x]
+    // assignment  =  [-- x]
     // return  = (return 1)
     if (expression[0] === 'return') {
       const [_tag, args] = expression;
@@ -158,6 +160,12 @@ class EvaMPP {
       switch (expression[0]) {
         case 'not':
           operator = '!';
+          break;
+        case '--':
+          operator = '--';
+          break;
+        case '++':
+          operator = '++';
           break;
         default:
           throw `Unknown unary operator: ${expression[0]}`;
@@ -572,7 +580,8 @@ class EvaMPP {
     if (expression.length !== 2) {
       return false;
     }
-    return Boolean(expression[0] === 'not' || expression[0] === '-');
+    const test = expression[0];
+    return Boolean(test === 'not' || test === '-' || test === '++' || test === '--');
   }
   _isLogicalBinary(expression) {
     const operator = expression[0];
