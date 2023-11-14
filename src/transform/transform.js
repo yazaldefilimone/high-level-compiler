@@ -1,4 +1,5 @@
 const { types, internalType } = require('../utils');
+const crypto = require('crypto');
 
 class Transform {
   functionToAsyncGenerator(ast) {
@@ -72,7 +73,7 @@ class Transform {
 
     const blinding = {
       type: types.Identifier,
-      name: `_${property.key.name}`,
+      name: this._generateRadomName(property.key.name),
     };
 
     property.value = blinding;
@@ -117,6 +118,10 @@ class Transform {
       test: IFConditionExpression,
       consequence,
     };
+  }
+  _generateRadomName(currentName, len = 2) {
+    const hash = crypto.createHash('shake256', { outputLength: len }).update(currentName).digest('hex');
+    return `${hash}_${currentName}`;
   }
 }
 
